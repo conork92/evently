@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evently – Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: #0f0f0f;
+      --border: #1f1f1f;
+      --text: #ffffff;
+      --muted: #888;
+      --accent: #FF1C5E;
+      --accent-hover: #ff4077;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Space Grotesk', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    .top {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .top h1 { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+    .top a { color: var(--text); text-decoration: none; font-weight: 600; padding: 0.4rem 0.8rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); transition: border-color 0.15s, color 0.15s; }
+    .top a:hover { border-color: var(--accent); color: var(--accent); }
+    .filters { display: flex; gap: 0.5rem; align-items: center; }
+    .filters label { color: var(--muted); font-size: 0.85rem; }
+    .filters select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 0.65rem;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.85rem;
+    }
+    .filters select:focus { outline: none; border-color: var(--accent); }
+    .filters .btn-apply {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .filters .btn-apply:hover { background: #ff4077; }
+    #map { height: calc(100vh - 56px); width: 100%; }
+    .leaflet-popup-content { margin: 0.6rem 0.8rem; font-size: 0.9rem; font-family: 'Space Grotesk', sans-serif; }
+    .leaflet-popup-content h4 { margin: 0 0 0.25rem; font-weight: 700; }
+    .leaflet-popup-content .meta { color: #888; font-size: 0.8rem; }
+    .leaflet-popup-content a { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>Evently</h1>
+    <a href="/">← This week</a>
+    <a href="/map">Map</a>
+    <div class="filters">
+      <label>Category <select id="category"><option value="">All</option></select></label>
+      <label>Area <select id="area"><option value="">All</option></select></label>
+      <button type="button" id="apply" class="btn-apply">Update map</button>
+    </div>
+  </div>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const map = L.map('map').setView([51.5074, -0.1278], 10);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap, &copy; CARTO',
+      maxZoom: 19,
+    }).addTo(map);
+
+    const markers = [];
+    const categoryEl = document.getElementById('category');
+    const areaEl = document.getElementById('area');
+    const applyBtn = document.getElementById('apply');
+
+    function clearMarkers() {
+      markers.forEach(m => m.remove());
+      markers.length = 0;
+    }
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    async function loadFilters() {
+      const [cats, areas] = await Promise.all([
+        fetch('/api/events/categories').then(r => r.json()),
+        fetch('/api/events/areas').then(r => r.json()),
+      ]);
+      cats.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c;
+        o.textContent = c;
+        categoryEl.appendChild(o);
+      });
+      areas.forEach(a => {
+        const o = document.createElement('option');
+        o.value = a;
+        o.textContent = a;
+        areaEl.appendChild(o);
+      });
+    }
+
+    async function loadMap() {
+      const cat = categoryEl.value || undefined;
+      const area = areaEl.value || undefined;
+      const params = new URLSearchParams();
+      if (cat) params.set('category', cat);
+      if (area) params.set('area', area);
+      const res = await fetch('/api/events/map?' + params);
+      const events = await res.json();
+      clearMarkers();
+      const withCoords = events.filter(e => e.lat != null && e.lng != null);
+      if (withCoords.length === 0) {
+        return;
+      }
+      const bounds = [];
+      withCoords.forEach(ev => {
+        const m = L.marker([ev.lat, ev.lng]);
+        const d = new Date(ev.event_date);
+        const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        const content = `
+          <h4>${escapeHtml(ev.title)}</h4>
+          <div class="meta">${dateStr} · ${escapeHtml(ev.venue_name || ev.location)}</div>
+          ${ev.category ? `<div class="meta">${escapeHtml(ev.category)}</div>` : ''}
+          ${ev.price_display ? `<div class="meta">${escapeHtml(ev.price_display)}</div>` : ''}
+          ${ev.url ? `<a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener">Tickets / info</a>` : ''}
+        `;
+        m.bindPopup(content);
+        m.addTo(map);
+        markers.push(m);
+        bounds.push([ev.lat, ev.lng]);
+      });
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+      }
+    }
+
+    applyBtn.addEventListener('click', loadMap);
+
+    (async () => {
+      await loadFilters();
+      await loadMap();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evently – This week</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: #0f0f0f;
+      --border: #1f1f1f;
+      --text: #ffffff;
+      --muted: #888;
+      --accent: #FF1C5E;
+      --accent-hover: #ff4077;
+      --cyan: #00D8AF;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.35rem;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+    .nav {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .nav a:hover {
+      background: var(--border);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .nav a.nav-period.active {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .nav a.nav-period.active:hover { color: var(--bg); }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    .filters label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .filters select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    .filters select:focus { outline: none; border-color: var(--accent); }
+    .filters .btn-apply {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .filters .btn-apply:hover { background: var(--accent-hover); }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.35rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 1rem;
+      align-items: start;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: #333; }
+    .card h3 { margin: 0 0 0.3rem; font-size: 1.08rem; font-weight: 700; letter-spacing: -0.02em; }
+    .card .meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .card .meta span { margin-right: 0.85rem; }
+    .card .tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      background: rgba(0, 216, 175, 0.12);
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
+      font-weight: 600;
+      display: inline-block;
+      margin-top: 0.35rem;
+    }
+    .card .price { color: var(--accent); font-weight: 700; font-size: 0.95rem; }
+    .card a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .card a:hover { text-decoration: underline; color: var(--accent-hover); }
+    .empty { color: var(--muted); padding: 2.5rem; text-align: center; font-size: 0.95rem; }
+    .loading { color: var(--muted); padding: 1rem; }
+    .section-title { font-size: 1.1rem; font-weight: 700; margin: 1.5rem 0 0.75rem; }
+    .add-link-form { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .add-link-form input[type="url"] { flex: 1; min-width: 200px; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.75rem; border-radius: var(--radius); font-family: inherit; }
+    .add-link-form input:focus { outline: none; border-color: var(--accent); }
+    .add-link-form button { background: var(--accent); color: var(--bg); border: none; padding: 0.5rem 1rem; border-radius: var(--radius); font-weight: 700; cursor: pointer; font-family: inherit; }
+    .add-link-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .msg { font-size: 0.9rem; margin-top: 0.5rem; }
+    .msg.ok { color: var(--cyan); }
+    .msg.err { color: #ff6b6b; }
+    .reviews-list { margin-top: 0.75rem; }
+    .review-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.5rem; }
+    .review-card h4 { margin: 0 0 0.35rem; font-size: 1rem; }
+    .review-card .body { color: var(--muted); font-size: 0.9rem; white-space: pre-wrap; }
+    .review-card .rating { color: var(--accent); font-size: 0.85rem; }
+    .review-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-top: 0.5rem; }
+    .review-form label { display: block; color: var(--muted); font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .review-form input, .review-form textarea { width: 100%; max-width: 400px; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.6rem; border-radius: 6px; font-family: inherit; margin-bottom: 0.75rem; }
+    .review-form textarea { min-height: 80px; resize: vertical; }
+    .review-form input:focus, .review-form textarea:focus { outline: none; border-color: var(--accent); }
+    .review-form button { background: var(--accent); color: var(--bg); border: none; padding: 0.4rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Evently</h1>
+    <p class="sub">What’s on</p>
+    <nav class="nav" id="period-nav" role="tablist">
+      <a href="/" class="nav-period active" data-period="all" role="tab">All</a>
+      <a href="/" class="nav-period" data-period="week" role="tab">This week</a>
+      <a href="/" class="nav-period" data-period="month" role="tab">This month</a>
+      <a href="/map">Map</a>
+    </nav>
+    <p class="section-title">Add event by link</p>
+    <form id="add-link-form" class="add-link-form">
+      <input type="url" id="event-url" name="url" placeholder="Paste Songkick or See Tickets event link" required />
+      <button type="submit" id="add-link-btn">Add</button>
+    </form>
+    <p id="add-link-msg" class="msg" aria-live="polite"></p>
+    <div class="filters">
+      <label>Category <select id="category"><option value="">All</option></select></label>
+      <label>Area <select id="area"><option value="">All</option></select></label>
+      <button type="button" id="apply" class="btn-apply">Apply</button>
+    </div>
+    <div id="list" class="list">
+      <div class="loading">Loading…</div>
+    </div>
+    <p class="section-title">Good reviews</p>
+    <p class="sub" style="margin-bottom:0.5rem">Stuff you’ve tried and liked</p>
+    <div id="reviews-list" class="reviews-list">
+      <div class="loading">Loading…</div>
+    </div>
+    <div class="review-form">
+      <form id="review-form">
+        <label for="review-title">Title</label>
+        <input type="text" id="review-title" name="title" required placeholder="e.g. bby at Grow" />
+        <label for="review-body">What you thought</label>
+        <textarea id="review-body" name="body" required placeholder="Quick review or notes…"></textarea>
+        <label for="review-rating">Rating (1–5, optional)</label>
+        <input type="number" id="review-rating" name="rating" min="1" max="5" placeholder="5" />
+        <label for="review-url">Link (optional)</label>
+        <input type="url" id="review-url" name="url" placeholder="https://..." />
+        <button type="submit">Add review</button>
+      </form>
+    </div>
+  </div>
+  <script>
+    const listEl = document.getElementById('list');
+    const categoryEl = document.getElementById('category');
+    const areaEl = document.getElementById('area');
+    const applyBtn = document.getElementById('apply');
+
+    async function loadFilters() {
+      const [cats, areas] = await Promise.all([
+        fetch('/api/events/categories').then(r => r.json()),
+        fetch('/api/events/areas').then(r => r.json()),
+      ]);
+      cats.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c;
+        o.textContent = c;
+        categoryEl.appendChild(o);
+      });
+      areas.forEach(a => {
+        const o = document.createElement('option');
+        o.value = a;
+        o.textContent = a;
+        areaEl.appendChild(o);
+      });
+    }
+
+    let currentPeriod = 'all';
+
+    function setPeriod(period) {
+      currentPeriod = period;
+      document.querySelectorAll('.nav-period').forEach(a => {
+        a.classList.toggle('active', a.getAttribute('data-period') === period);
+      });
+      loadEvents();
+    }
+
+    function renderEvents(events, emptyMsg) {
+      listEl.innerHTML = '';
+      if (!events.length) {
+        listEl.innerHTML = '<p class="empty">' + escapeHtml(emptyMsg) + '</p>';
+        return;
+      }
+      events.forEach(ev => {
+        const d = new Date(ev.event_date);
+        const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div>
+            <h3>${escapeHtml(ev.title)}</h3>
+            <div class="meta">
+              <span>${dateStr} · ${timeStr}</span>
+              <span>${escapeHtml(ev.venue_name || ev.location)}</span>
+              ${ev.area ? `<span>${escapeHtml(ev.area)}</span>` : ''}
+            </div>
+            ${ev.category ? `<span class="tag">${escapeHtml(ev.category)}</span>` : ''}
+          </div>
+          <div style="text-align:right">
+            ${ev.price_display ? `<div class="price">${escapeHtml(ev.price_display)}</div>` : ''}
+            ${ev.url ? `<a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener">Tickets / info</a>` : ''}
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    async function loadEvents() {
+      const cat = categoryEl.value || undefined;
+      const area = areaEl.value || undefined;
+      const params = new URLSearchParams();
+      if (cat) params.set('category', cat);
+      if (area) params.set('area', area);
+      listEl.innerHTML = '<div class="loading">Loading…</div>';
+      let url, emptyMsg;
+      if (currentPeriod === 'all') {
+        url = '/api/events/?' + params + (params.toString() ? '&' : '') + 'limit=300';
+        emptyMsg = 'No events. Add some with a link above or via the API.';
+      } else if (currentPeriod === 'month') {
+        url = '/api/events/this-month?' + params;
+        emptyMsg = 'No events this month.';
+      } else {
+        url = '/api/events/this-week?' + params;
+        emptyMsg = 'No events this week.';
+      }
+      const res = await fetch(url);
+      const events = await res.json();
+      renderEvents(events, emptyMsg);
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    applyBtn.addEventListener('click', loadEvents);
+
+    document.getElementById('period-nav').addEventListener('click', (e) => {
+      const t = e.target.closest('.nav-period');
+      if (t && t.hasAttribute('data-period') && t.getAttribute('href') === '/') {
+        e.preventDefault();
+        setPeriod(t.getAttribute('data-period'));
+      }
+    });
+
+    // Add event by link
+    const addLinkForm = document.getElementById('add-link-form');
+    const eventUrlInput = document.getElementById('event-url');
+    const addLinkBtn = document.getElementById('add-link-btn');
+    const addLinkMsg = document.getElementById('add-link-msg');
+    addLinkForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      addLinkMsg.textContent = '';
+      addLinkMsg.className = 'msg';
+      addLinkBtn.disabled = true;
+      try {
+        const res = await fetch('/api/events/add-by-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: eventUrlInput.value.trim() }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          addLinkMsg.textContent = data.length ? `Added ${data.length} event(s).` : 'Added.';
+          addLinkMsg.className = 'msg ok';
+          eventUrlInput.value = '';
+          loadEvents();
+        } else {
+          addLinkMsg.textContent = data.detail || res.statusText || 'Failed to add.';
+          addLinkMsg.className = 'msg err';
+        }
+      } catch (err) {
+        addLinkMsg.textContent = err.message || 'Request failed.';
+        addLinkMsg.className = 'msg err';
+      }
+      addLinkBtn.disabled = false;
+    });
+
+    // Good reviews
+    const reviewsListEl = document.getElementById('reviews-list');
+    const reviewForm = document.getElementById('review-form');
+    async function loadReviews() {
+      try {
+        const res = await fetch('/api/reviews/');
+        const reviews = await res.json();
+        reviewsListEl.innerHTML = '';
+        if (!reviews.length) {
+          reviewsListEl.innerHTML = '<p class="empty">No reviews yet. Add one below.</p>';
+          return;
+        }
+        reviews.forEach(r => {
+          const card = document.createElement('div');
+          card.className = 'review-card';
+          const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '';
+          card.innerHTML = `
+            <h4>${escapeHtml(r.title)}</h4>
+            ${r.rating ? `<div class="rating">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>` : ''}
+            <div class="body">${escapeHtml(r.body)}</div>
+            ${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" style="font-size:0.85rem;color:var(--accent)">Link</a>` : ''}
+            ${dateStr ? `<div style="font-size:0.8rem;color:var(--muted);margin-top:0.35rem">${dateStr}</div>` : ''}
+          `;
+          reviewsListEl.appendChild(card);
+        });
+      } catch (_) {
+        reviewsListEl.innerHTML = '<p class="empty">Could not load reviews.</p>';
+      }
+    }
+    reviewForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('review-title').value.trim();
+      const body = document.getElementById('review-body').value.trim();
+      const ratingEl = document.getElementById('review-rating');
+      const urlEl = document.getElementById('review-url');
+      const rating = ratingEl.value ? parseInt(ratingEl.value, 10) : null;
+      const url = urlEl.value.trim() || null;
+      try {
+        const res = await fetch('/api/reviews/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, body, rating: rating && rating >= 1 && rating <= 5 ? rating : null, url }),
+        });
+        if (res.ok) {
+          document.getElementById('review-title').value = '';
+          document.getElementById('review-body').value = '';
+          ratingEl.value = '';
+          urlEl.value = '';
+          loadReviews();
+        }
+      } catch (_) {}
+    });
+    loadReviews();
+
+    (async () => {
+      await loadFilters();
+      setPeriod('all');
+    })();
+  </script>
+</body>
+</html>
