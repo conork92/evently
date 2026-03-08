@@ -30,7 +30,7 @@ make down      # stop
 make logs      # tail logs
 ```
 
-Or: `docker compose up -d --build`. The app listens on port 8003. With Supabase, set `DATABASE_URL` in `.env`.
+Or: `docker compose up -d --build`. The app listens on port 8003. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `.env` (Supabase only, no local database).
 
 - **Web UI:** http://127.0.0.1:8003/  
 - **Map:** http://127.0.0.1:8003/map  
