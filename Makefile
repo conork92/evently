@@ -14,7 +14,7 @@ help:
 	@echo "  make down      Stop Docker Compose"
 	@echo "  make logs      Tail Compose logs"
 	@echo "  make shell     Shell into running app container"
-	@echo "  make clean     Remove .venv, __pycache__, *.db"
+	@echo "  make clean     Remove .venv and __pycache__"
 	@echo "  make test      Run tests (if any)"
 	@echo ""
 	@echo "Override port: make start PORT=8004"
@@ -46,7 +46,6 @@ clean:
 	rm -rf .venv
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete 2>/dev/null || true
-	rm -f evently.db ./data/evently.db 2>/dev/null || true
 
 test:
 	.venv/bin/python -m pytest 2>/dev/null || echo "No tests yet – add tests/ and run pytest"
